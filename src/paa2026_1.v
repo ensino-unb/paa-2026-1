@@ -1,7 +1,6 @@
 Print nat.
 
 Print nat_ind.
-
 Print list.
 
 Print list_ind.
@@ -25,23 +24,23 @@ Fixpoint busca_bool (x:nat) (l:list nat) : bool :=
              else busca_bool x tl
   end.
 
-(** Para qualquer lista de números naturais l, o algoritmo busca_bool(x, l) retorna true se x ocorre em l, e false, caso contrário.
+(** Para qualquer lista l e valor x, o algoritmo busca_bool(x, l) retorna true se, e somente se, x ocorre em l.
 *)
 
-Theorem busca_bool_correto: forall l x, (In x l -> busca_bool x l = true) /\ (~ In x l -> busca_bool x l = false).
+Theorem busca_bool_correto: forall l x, (busca_bool x l = true) <-> In x l.
 Proof.
   induction l as [ | h tl].
   - intro x. split.
     + intro H. simpl in H. inversion H.
-    + intro H. simpl. reflexivity.
+    + intro H. simpl in H. contradiction.
   - intro x. split.
-    + intro H. simpl. case (h =? x) eqn: Heq.
-      * reflexivity.
-      * simpl in H. destruct H as [H | H].
-        ** apply Nat.eqb_neq in Heq. contradiction.
-        ** apply IHtl. exact H.
-    + intro H. simpl. simpl in H.  apply Decidable.not_or in H. destruct H. case (h =? x) eqn: Heq.
-      *  apply Nat.eqb_eq in Heq. contradiction.
-      * apply IHtl. assumption.
+    + intro H. simpl in *. case (h =? x) eqn: Heq.
+      * left. apply Nat.eqb_eq. assumption.
+      * apply IHtl in H. right. assumption.
+    + intro H. simpl in *. destruct H as [Heq | Hin].
+      * subst. rewrite Nat.eqb_refl. reflexivity.
+      * case (h =? x) eqn: Hhx.
+        ** reflexivity.
+        ** apply IHtl. assumption. 
 Qed.
 
