@@ -44,3 +44,43 @@ Proof.
         ** apply IHtl. assumption. 
 Qed.
 
+(** Ordenação por inserção. *)
+
+Fixpoint insert x l :=
+  match l with
+  | nil => x::nil
+  | h::tl => if (x <=? h)
+             then x::h::tl
+             else h::(insert x tl)
+  end.
+
+Fixpoint insertion_sort l :=
+  match l with
+  | nil => nil
+  | h::tl => insert h (insertion_sort tl)
+  end.
+
+Eval compute in insertion_sort (3::1::nil).
+Eval compute in insertion_sort (3::2::7::1::nil).
+
+Inductive Sorted (A : Type) (R : A -> A -> Prop) : list A -> Prop :=
+  | Sorted_nil : Sorted _ R nil
+  | Sorted_cons : forall (a : A) (l : list A),
+      (forall b : A, In b l -> R a b) -> Sorted _ R l -> Sorted _ R (a :: l).
+
+Inductive Sorted' (A : Type) (R : A -> A -> Prop) : list A -> Prop :=
+| Sorted_nil' : Sorted' _ R nil
+| Sorted_one' : forall x, Sorted' _ R (x::nil)
+| Sorted_cons' : forall (a b: A) (l : list A),
+      R a b -> Sorted' _ R (b::l) -> Sorted' _ R (a :: b :: l).
+
+
+Theorem equiv_Sorted_Sorted' (A: Type): forall R l, Sorted A R l <-> Sorted' A R l. 
+Proof.
+Admitted.
+
+From Stdlib Require Import Permutation.
+
+Print Permutation.
+
+Theorem insertion_sort_correto: forall l, sorted (insertion_sort l) /\ permutation (insertion_sort l) l.
