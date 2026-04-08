@@ -63,6 +63,7 @@ Fixpoint insertion_sort l :=
 Eval compute in insertion_sort (3::1::nil).
 Eval compute in insertion_sort (3::2::7::1::nil).
 
+(*
 Inductive Sorted (A : Type) (R : A -> A -> Prop) : list A -> Prop :=
   | Sorted_nil : Sorted _ R nil
   | Sorted_cons : forall (a : A) (l : list A),
@@ -74,13 +75,25 @@ Inductive Sorted' (A : Type) (R : A -> A -> Prop) : list A -> Prop :=
 | Sorted_cons' : forall (a b: A) (l : list A),
       R a b -> Sorted' _ R (b::l) -> Sorted' _ R (a :: b :: l).
 
+Definition Sorted'' (A: Type) (R: A -> A -> Prop) (l: list A) :=
+  match (length l) with
+  | 0 => True
+  | 1 => True
+  | _ => forall i j d, i < j -> j < length l -> R (nth i l d) (nth j l d)
+  end.
 
+(** As definições acima são equivalentes? *)
 Theorem equiv_Sorted_Sorted' (A: Type): forall R l, Sorted A R l <-> Sorted' A R l. 
 Proof.
-Admitted.
+Admitted. *)
+
+From Stdlib Require Import Sorted.
 
 From Stdlib Require Import Permutation.
 
 Print Permutation.
+Print Stdlib.Sorting.Sorted.Sorted.
 
-Theorem insertion_sort_correto: forall l, sorted (insertion_sort l) /\ permutation (insertion_sort l) l.
+Theorem insertion_sort_correto: forall (l: list nat), Sorted le (insertion_sort l) /\ Permutation (insertion_sort l) l.
+Proof.
+  induction l as [ | h tl]. Admitted.
