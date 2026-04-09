@@ -1,3 +1,4 @@
+(* begin hide *)
 Print nat.
 
 Print nat_ind.
@@ -5,7 +6,7 @@ Print list.
 
 Print list_ind.
 
-Inductive mnat := x0:mnat | x1:mnat | S: mnat -> mnat| C: mnat -> mnat -> mnat.
+Inductive mnat := x0:mnat | x1:mnat | S': mnat -> mnat| C: mnat -> mnat -> mnat.
 
 Print mnat.
 
@@ -43,8 +44,19 @@ Proof.
         ** reflexivity.
         ** apply IHtl. assumption. 
 Qed.
+(* end hide *)
 
 (** * Diferentes definições de ordenação de listas *)
+(*
+Inductive SortedNat: list nat -> Prop :=
+  | SortedNat_nil : SortedNat nil
+  | SortedNat_cons : forall (a : nat) (l : list nat),
+      (forall b : nat, In b l -> le a b) -> SortedNat l -> SortedNat (a :: l).
+
+Inductive Sorted1': (nat -> nat -> Prop) -> list nat -> Prop :=
+  | Sorted1_nil' : Sorted1' le nil
+  | Sorted1_cons' : forall (a : nat) (l : list nat),
+      (forall b : nat, In b l -> le a b) -> Sorted1' le l -> Sorted1' le (a :: l). *)
 
 Inductive Sorted1 (A : Type) (R : A -> A -> Prop) : list A -> Prop :=
   | Sorted1_nil : Sorted1 _ R nil
@@ -64,17 +76,25 @@ Definition Sorted3 (A: Type) (R: A -> A -> Prop) (l: list A) :=
   | _ => forall i j d, i < j -> j < length l -> R (nth i l d) (nth j l d)
   end.
 
+Definition Sorted4 (A: Type) (R: A -> A -> Prop) (l: list A) :=
+  match (length l) with
+  | 0 => True
+  | 1 => True
+  | _ => forall i d, 0 <= i -> i < length l -> R (nth i l d) (nth (S i) l d)
+  end.
+
 From Stdlib Require Import Sorted.
 Print Stdlib.Sorting.Sorted.Sorted.
 
 (** ** Subprojeto 1: Equivalências entre diferentes definições de ordenação *)
 
 (** Provar que [Sorted], [Sorted1], [Sorted2] e [Sorted3] são equivalentes. *)
-
-Theorem equiv_Sorted_Sorted1 (A: Type): forall R l, Sorted R l <-> Sorted1 A R l. 
+(*
+Theorem equiv_Sorted_Sorted1 (A: Type): forall R l, Sorted1 A R l -> Sorted2 A R l. 
 Proof.
+  
 Admitted.
-
+*)
 
 (** * Diferentes definições de permutação de listas *)
 (** ** Subprojeto 2: Equivalências entre diferentes definições de permutação *)
@@ -82,6 +102,20 @@ Admitted.
 From Stdlib Require Import Permutation.
 Print Permutation.
 
+Fixpoint count_occ (x: nat) (l: list nat) : nat :=
+  match l with
+  | nil => 0
+  | h::tl => if (h =? x)
+             then S (count_occ x tl)
+             else count_occ x tl
+  end.
+
+Definition Permutation_occ (l1 l2: list nat) : Prop :=
+  forall x, count_occ x l1 = count_occ x l2.
+
+Theorem equiv_Permutation_Permutation_occ: forall l1 l2, Permutation l1 l2 <-> Permutation_occ l1 l2.
+
+(** Provar que [Permutation] é equivalente a definição de permutação baseada na contagem de ocorrências. *)
 
 (** * Formalização da correção do algoritmo de ordenação por inserção. *)
 
