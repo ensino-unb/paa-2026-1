@@ -114,6 +114,8 @@ Definition Permutation_occ (l1 l2: list nat) : Prop :=
   forall x, count_occ x l1 = count_occ x l2.
 
 Theorem equiv_Permutation_Permutation_occ: forall l1 l2, Permutation l1 l2 <-> Permutation_occ l1 l2.
+Proof.
+Admitted.
 
 (** Provar que [Permutation] é equivalente a definição de permutação baseada na contagem de ocorrências. *)
 
@@ -129,6 +131,9 @@ Fixpoint insert x l :=
              else h::(insert x tl)
   end.
 
+Eval compute in insert 3 (1::2::nil).
+Eval compute in insert 3 (5::1::2::nil).
+
 Fixpoint insertion_sort l :=
   match l with
   | nil => nil
@@ -136,8 +141,15 @@ Fixpoint insertion_sort l :=
   end.
 
 Eval compute in insertion_sort (3::1::nil).
-Eval compute in insertion_sort (3::2::7::1::nil).
+Eval compute in insertion_sort (3::2::7::1::1::2::nil).
 
-Theorem insertion_sort_correto: forall (l: list nat), Sorted le (insertion_sort l) /\ Permutation (insertion_sort l) l.
+Theorem insertion_sort_correcao: forall (l: list nat), Sorted le (insertion_sort l) /\ Permutation (insertion_sort l) l.
 Proof.
-  induction l as [ | h tl]. Admitted.
+  induction l as [ | h tl].
+  - split.
+    + simpl. constructor.
+    + simpl. constructor.
+  - split.
+    + simpl. constructor. 
+    +
+  
