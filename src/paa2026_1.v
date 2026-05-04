@@ -143,13 +143,38 @@ Fixpoint insertion_sort l :=
 Eval compute in insertion_sort (3::1::nil).
 Eval compute in insertion_sort (3::2::7::1::1::2::nil).
 
-Theorem insertion_sort_correcao: forall (l: list nat), Sorted le (insertion_sort l) /\ Permutation (insertion_sort l) l.
+Lemma insert_preserves_sorting: forall l x,  Sorted le l -> Sorted le (insert x l).
+Proof.
+  induction l as [| h tl].
+  - intros x H. simpl. constructor.
+    + constructor.
+    + constructor.
+  - intros x H. simpl. case (x <=? h) eqn:H'.
+    + constructor.
+      * assumption.
+      * constructor. apply leb_complete. assumption.
+    + generalize dependent tl. intro tl. case tl.
+      * intros IH H''. simpl. admit.
+      * intros n l IH H. simpl. case (x <=? n) eqn: H''.
+        ** admit. 
+        ** simpl insert in IH. rewrite H'' in IH.
+           
+           Print
+
+
+
+             Stdlib.Sorting.Sorted.Sorted.
+        
+  Admitted.
+
+  Theorem insertion_sort_correcao: forall (l: list nat), Sorted le (insertion_sort l) /\ Permutation (insertion_sort l) l.
 Proof.
   induction l as [ | h tl].
   - split.
     + simpl. constructor.
     + simpl. constructor.
   - split.
-    + simpl. constructor. 
+    + destruct IHtl as [Hsorted Hperm]. simpl.
+      apply insert_preserves_sorting. assumption.
     +
   
