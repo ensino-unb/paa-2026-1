@@ -58,6 +58,9 @@ Inductive Sorted1': (nat -> nat -> Prop) -> list nat -> Prop :=
   | Sorted1_cons' : forall (a : nat) (l : list nat),
       (forall b : nat, In b l -> le a b) -> Sorted1' le l -> Sorted1' le (a :: l). *)
 
+(** As definições a seguir representam diferentes formas de expressar a noção de ordenação de uma lista. A definição [Sorted1] é polimórfica e recebe como argumentos um tipo [A] sobre o qual precisamos ter uma ordem total [R] também dada como argumento e uma lista de elementos do tipo [A]. Esta definição possui dois construtores, ou duas regras: a primeira, chamada [Sorted1_nil] expressa o fato de que a lista vazia está ordenada. A outra regra, chamada [Sorted1_cons] diz que para que a lista não-vazia [a::l] esteja ordenada é necessário que a cauda [l] esteja ordenada e que o primeiro elemento [a] esteja relacionado com todos os outros elementos da cauda [l] via a ordem total [R]. Assim, se [R] é a ordem usual "menor ou igual que", esta condição está nos dizendo que [a] é menor ou igual do que todo elemento [b] da cauda [l]:
+*)
+
 Inductive Sorted1 (A : Type) (R : A -> A -> Prop) : list A -> Prop :=
   | Sorted1_nil : Sorted1 _ R nil
   | Sorted1_cons : forall (a : A) (l : list A),
@@ -123,6 +126,9 @@ Admitted.
 
 (** ** O algoritmo [insertion_sort] *)
 
+(** A seguir definiremos a função [insert x l] que insere o elemento [x] na lista [l]. A definição é construída recursivamente na estrutura da lista [l]. Assim, se [l] é a lista vazia, [insert x l] retorna a lista [x::nil], mas quando [l] é uma lista não-vazia, digamos [h::tl] então comparamos [x] com [h] para definir onde [x] deve ser inserido. Fazemos esta comparação porque queremos que se a lista [l] estiver ordenada então o resultado [insert x l] da inserção também deve estar ordenado. 
+*)
+
 Fixpoint insert x l :=
   match l with
   | nil => x::nil
@@ -131,17 +137,14 @@ Fixpoint insert x l :=
              else h::(insert x tl)
   end.
 
+(** Observe que este comportamento esperado de [insert] não aparece explicitamente na definição. De fato, a função [insert x l] pode receber qualquer lista [l] como argumento, mas o comportamento esperado só ocorre se [l] for uma lista ordenada.
+*)
+
 Eval compute in insert 3 (1::2::nil).
 Eval compute in insert 3 (5::1::2::nil).
 
-Fixpoint insertion_sort l :=
-  match l with
-  | nil => nil
-  | h::tl => insert h (insertion_sort tl)
-  end.
-
-Eval compute in insertion_sort (3::1::nil).
-Eval compute in insertion_sort (3::2::7::1::1::2::nil).
+(** O lema a seguir prova que a função [insert] efetivamente possui o comportamento descrito acima, ou seja, retorna uma lista ordenada quando a lista dada como argumento está ordenada:
+*)
 
 Lemma insert_preserves_sorting: forall l x,  Sorted le l -> Sorted le (insert x l).
 Proof.
@@ -150,11 +153,15 @@ Proof.
     + constructor.
     + constructor.
   - intros x H. simpl. case (x <=? h) eqn:H'.
-    + constructor.
+    + clear IHtl. constructor.
       * assumption.
-      * constructor. apply leb_complete. assumption.
-    + generalize dependent tl. intro tl. case tl.
-      * intros IH H''. simpl. admit.
+      * constructor. apply leb_complete in H'. assumption.
+    + constructor.
+      * apply IHtl. inversion H. assumption.
+      * (* aqui *) generalize dependent tl. intro tl. case tl.
+      * intros IH H''. simpl. constructor.
+        ** constructor; constructor.
+        ** constructor.
       * intros n l IH H. simpl. case (x <=? n) eqn: H''.
         ** admit. 
         ** simpl insert in IH. rewrite H'' in IH.
@@ -166,6 +173,17 @@ Proof.
              Stdlib.Sorting.Sorted.Sorted.
         
   Admitted.
+
+
+Fixpoint insertion_sort l :=
+  match l with
+  | nil => nil
+  | h::tl => insert h (insertion_sort tl)
+  end.
+
+Eval compute in insertion_sort (3::1::nil).
+Eval compute in insertion_sort (3::2::7::1::1::2::nil).
+
 
   Theorem insertion_sort_correcao: forall (l: list nat), Sorted le (insertion_sort l) /\ Permutation (insertion_sort l) l.
 Proof.
